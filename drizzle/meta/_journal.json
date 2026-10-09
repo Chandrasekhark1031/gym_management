@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791543308636,
+      "tag": "0000_flowery_vindicator",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791543570460,
+      "tag": "0001_naive_shard",
+      "breakpoints": true
+    }
+  ]
+}

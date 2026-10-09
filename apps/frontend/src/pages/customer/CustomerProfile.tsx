@@ -101,7 +101,7 @@ export default function CustomerProfile() {
         </CardBody>
       </Card>
 
-      <Card>
+      {import.meta.env.VITE_SITES_MODE !== 'true' && <Card>
         <CardBody>
           <form onSubmit={changePassword} className="space-y-4 max-w-lg">
             <h2 className="font-semibold text-gray-900">Change Password</h2>
@@ -111,7 +111,7 @@ export default function CustomerProfile() {
             <Button type="submit" loading={saving}>Update Password</Button>
           </form>
         </CardBody>
-      </Card>
+      </Card>}
     </div>
   );
 }

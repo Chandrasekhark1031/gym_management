@@ -15,7 +15,7 @@ const getOwnerStats = async (req, res, next) => {
       ),
       pool.query('SELECT COUNT(*)::int AS count FROM plans WHERE owner_id = $1 AND is_active = TRUE', [ownerId]),
       pool.query(
-        `SELECT COUNT(*)::int AS count, COALESCE(SUM(p.amount), 0) AS total_amount
+        `SELECT COUNT(*)::int AS count, COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'PAID'), 0) AS total_amount
          FROM payments p
          JOIN customers c ON c.id = p.customer_id
          WHERE c.owner_id = $1`,
@@ -35,7 +35,7 @@ const getOwnerStats = async (req, res, next) => {
 
     for (const row of memberships.rows) {
       const { status } = computeMembershipStatus(row.end_date);
-      if (status === 'ACTIVE') activeMemberships += 1;
+      if (status === 'ACTIVE' || status === 'EXPIRING_SOON') activeMemberships += 1;
       if (status === 'EXPIRING_SOON') expiringWithin7 += 1;
       if (status === 'EXPIRED') expiredMemberships += 1;
     }

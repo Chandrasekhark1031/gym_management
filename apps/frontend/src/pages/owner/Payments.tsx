@@ -26,6 +26,9 @@ const emptyForm = {
 export default function Payments() {
   const showToast = useToastStore((s) => s.show);
   const [payments, setPayments] = useState<any[]>([]);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [search, setSearch] = useState('');
+  const [reviewing, setReviewing] = useState('');
   const [customers, setCustomers] = useState<any[]>([]);
   const [membershipOptions, setMembershipOptions] = useState<{ id: string; label: string }[]>([]);
   const [editMembershipOptions, setEditMembershipOptions] = useState<{ id: string; label: string }[]>([]);
@@ -133,15 +136,26 @@ export default function Payments() {
     }
   };
 
+  const visiblePayments = payments.filter(p => (!statusFilter || p.status === statusFilter) && (!search || p.customerName?.toLowerCase().includes(search.toLowerCase())));
+  const currency = (v: number) => new Intl.NumberFormat('en-IN', { style:'currency', currency:'INR', maximumFractionDigits:0 }).format(v);
+  const review = async (p: any, status: string) => { setReviewing(p.id); try { await gymService.payments.update(p.id, { ...p, status }); showToast(status === 'PAID' ? 'Payment confirmed.' : 'Payment marked failed.', 'success'); await load(); } catch(e: any) { showToast(e.response?.data?.message || 'Unable to review payment.', 'error'); } finally { setReviewing(''); } };
+  const exportPayments = () => {
+    const cell = (value: unknown) => { const text = String(value ?? ''); const safe = /^[=+@-]/.test(text) ? "'" + text : text; return '"' + safe.replace(/"/g, '""') + '"'; };
+    const rows = [['Member', 'Amount INR', 'Date', 'Method', 'Status', 'Notes'], ...visiblePayments.map(p => [p.customerName, p.amount, p.paymentDate, p.paymentMethod, p.status, p.notes])];
+    const url = URL.createObjectURL(new Blob([rows.map(row => row.map(cell).join(',')).join('\r\n')], { type:'text/csv;charset=utf-8' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'FitBro_Payments.csv'; a.click(); URL.revokeObjectURL(url);
+  };
   return (
     <div>
-      <PageHeader title="Payments" description="Record and track customer payments" actions={<Button onClick={() => { setForm(emptyForm); setModalOpen(true); }}>Add Payment</Button>} />
+      <PageHeader title="Payments" description="Record and track customer payments" actions={<><Button variant="secondary" onClick={exportPayments}>Export CSV</Button><Button onClick={() => { setForm(emptyForm); setModalOpen(true); }}>Add Payment</Button></>} />
 
+      <div className="grid sm:grid-cols-3 gap-4 mb-5"><Card className="p-4"><p className="text-xs text-gray-500">Confirmed collection</p><p className="text-2xl font-bold mt-2">{currency(payments.filter(p=>p.status==='PAID').reduce((s,p)=>s+Number(p.amount),0))}</p></Card><Card className="p-4"><p className="text-xs text-gray-500">Awaiting review</p><p className="text-2xl font-bold mt-2">{payments.filter(p=>p.status==='PENDING').length}</p></Card><Card className="p-4"><p className="text-xs text-gray-500">Payment records</p><p className="text-2xl font-bold mt-2">{payments.length}</p></Card></div>
+      <div className="flex flex-col sm:flex-row gap-3 mb-5"><input value={search} onChange={e=>setSearch(e.target.value)} aria-label="Search payments by member" placeholder="Search payments by member…" className="rounded-xl border border-gray-200 px-4 py-2 text-sm bg-white flex-1 min-w-0"/><select aria-label="Payment status filter" value={statusFilter} onChange={e=>setStatusFilter(e.target.value)} className="rounded-xl border border-gray-200 px-4 py-2 text-sm bg-white"><option value="">All statuses</option>{PAYMENT_STATUSES.map(s=><option key={s} value={s}>{s==='PENDING'?'Pending review':s}</option>)}</select></div>
       {error && <div className="mb-4"><ErrorState message={error} /></div>}
 
       {loading ? (
         <LoadingState message="Loading payments..." />
-      ) : payments.length === 0 ? (
+      ) : visiblePayments.length === 0 ? (
         <EmptyState title="No payments found" description="Record a payment when a customer pays for their membership." />
       ) : (
         <Card className="overflow-x-auto">
@@ -154,17 +168,17 @@ export default function Payments() {
               </tr>
             </thead>
             <tbody>
-              {payments.map((p) => (
+              {visiblePayments.map((p) => (
                 <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50">
                   <td className="p-3 font-medium">{p.customerName}</td>
                   <td className="p-3 text-gray-600">{p.membershipPlanName || '-'}</td>
-                  <td className="p-3">{p.amount}</td>
+                  <td className="p-3 font-semibold">{currency(p.amount)}</td>
                   <td className="p-3">{new Date(p.paymentDate).toLocaleDateString()}</td>
                   <td className="p-3">{formatPaymentMethod(p.paymentMethod)}</td>
                   <td className="p-3"><Badge variant={paymentBadgeVariant(p.status)}>{p.status}</Badge></td>
                   <td className="p-3 text-gray-600 max-w-[200px] truncate" title={p.notes || ''}>{p.notes || '-'}</td>
                   <td className="p-3">
-                    <button type="button" className="text-blue-600 hover:underline" onClick={() => openEdit(p)}>Edit</button>
+                    <div className="flex items-center gap-3">{p.status === 'PENDING' && <><Button className="text-xs" disabled={reviewing === p.id} onClick={() => review(p,'PAID')}>Confirm</Button><button type="button" className="text-xs text-red-500 min-h-9" disabled={reviewing === p.id} onClick={() => review(p,'FAILED')}>Reject</button></>}<button type="button" className="text-[#588343] hover:underline min-h-9" onClick={() => openEdit(p)}>Edit</button></div>
                   </td>
                 </tr>
               ))}

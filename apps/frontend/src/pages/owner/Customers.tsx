@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { MoreHorizontal, Search } from 'lucide-react';
 import { gymService, assetUrl } from '../../services/gymService';
 import { useGymStore } from '../../store/useGymStore';
@@ -43,10 +43,11 @@ type ConfirmState =
 
 export default function Customers() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { refreshKey, triggerRefresh } = useGymStore();
   const showToast = useToastStore((s) => s.show);
   const [customers, setCustomers] = useState<CustomerRow[]>([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('q') || '');
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -70,6 +71,8 @@ export default function Customers() {
       setLoading(false);
     }
   };
+
+  useEffect(() => { setSearch(searchParams.get('q') || ''); if (searchParams.get('add') === '1') { setShowForm(true); searchParams.delete('add'); setSearchParams(searchParams, { replace: true }); } }, [searchParams, setSearchParams]);
 
   useEffect(() => { load(); }, [search, filter, refreshKey]);
 
@@ -314,12 +317,12 @@ export default function Customers() {
           <Input label="Phone *" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
           <Input label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           <Input label="Address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-          <PasswordInput
+          {import.meta.env.VITE_SITES_MODE !== 'true' && <PasswordInput
             label={editCustomer ? 'New login password' : 'Login Password'}
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             hint={editCustomer ? 'Leave blank to keep current password.' : 'Optional. Required for customer portal login.'}
-          />
+          />}
           {editCustomer?.id && (
             <ProfilePhotoUpload
               photoUrl={editCustomer.photoUrl}

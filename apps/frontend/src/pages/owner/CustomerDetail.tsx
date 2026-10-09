@@ -216,7 +216,7 @@ export default function CustomerDetail() {
             <Button variant="secondary" onClick={() => setAssignOpen(true)}>Assign Membership</Button>
             <Button variant="secondary" onClick={() => activeMembership && openRenew(activeMembership)} disabled={!activeMembership}>Renew Membership</Button>
             <Button variant="secondary" onClick={() => setPaymentOpen(true)}>Add Payment</Button>
-            <Button variant="secondary" onClick={() => setPasswordOpen(true)}>Change Password</Button>
+            {import.meta.env.VITE_SITES_MODE !== 'true' && <Button variant="secondary" onClick={() => setPasswordOpen(true)}>Change Password</Button>}
             <Button
               variant="secondary"
               onClick={() => setConfirm({ type: 'status', next: edit.accountStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' })}
@@ -329,7 +329,7 @@ export default function CustomerDetail() {
                 {data.payments.map((p: any) => (
                   <tr key={p.id} className="border-t border-gray-100">
                     <td className="p-3 font-medium">{p.amount}</td>
-                    <td className="p-3">{new Date(p.payment_date).toLocaleDateString()}</td>
+                    <td className="p-3">{new Date(p.paymentDate || p.payment_date).toLocaleDateString()}</td>
                     <td className="p-3">{formatPaymentMethod(p.payment_method || p.paymentMethod)}</td>
                     <td className="p-3"><Badge variant={paymentBadgeVariant(p.status)}>{p.status}</Badge></td>
                     <td className="p-3 text-gray-600">{p.membership_plan_name || p.membershipPlanName || '-'}</td>

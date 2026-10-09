@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { User } from '../types';
 import { authService } from '../services/authService';
 import { customerPortalService } from '../services/gymService';
+import api from '../services/api';
 
 const mapOwner = (user: any): User => ({
   id: user.id,
@@ -13,6 +14,9 @@ const mapOwner = (user: any): User => ({
   gymName: user.gymName,
   upiId: user.upiId,
   photoUrl: user.photoUrl,
+  bankCandidateName: user.bankCandidateName,
+  paymentPhone: user.paymentPhone,
+  qrCodeUrl: user.qrCodeUrl,
   emailVerified: user.emailVerified,
   phoneVerified: user.phoneVerified,
   lastLoginAt: user.lastLoginAt,
@@ -58,6 +62,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   restoreSession: async () => {
     try {
+      if (import.meta.env.VITE_SITES_MODE === 'true') {
+        const response = await api.get('/sites/session');
+        const user = response.data.user;
+        const token = response.data.token;
+        localStorage.setItem('jwt_token', token);
+        localStorage.setItem('auth_role', user.role);
+        set({ user: user.role === 'customer' ? mapCustomer(user) : mapOwner(user), token, isLoading: false });
+        return;
+      }
       const token = localStorage.getItem('jwt_token');
       const role = localStorage.getItem('auth_role');
       if (!token) {
