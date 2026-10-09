@@ -6,7 +6,7 @@ export default function SitesSignIn() {
   const sessionError = useAuthStore((s) => s.sessionError);
   return <main className="min-h-dvh grid lg:grid-cols-2 bg-[#f5f7f1] text-[#193b31]">
     <section className="flex flex-col p-6 sm:p-12 lg:p-16">
-      <a href="/" className="gym-brand !text-[#193b31] w-fit" aria-label="FitBro home"><div className="gym-brand-mark"><Dumbbell size={25} /></div><div><strong>FITBRO<span>®</span></strong><small>GYM MANAGEMENT</small></div></a>
+      <a href="/" className="gym-brand !text-[#193b31] w-fit" aria-label="FitBro home"><div className="gym-brand-mark"><Dumbbell size={25} /></div><div><strong className="!text-[#193b31]">FITBRO<span>®</span></strong><small>GYM MANAGEMENT</small></div></a>
       <div className="my-auto max-w-md py-16 sm:py-20">
         <span className="gym-eyebrow">YOUR GYM, IN FOCUS</span>
         <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.12] mt-5">Keep your community<br />moving forward.</h1>
