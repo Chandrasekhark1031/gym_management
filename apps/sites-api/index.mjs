@@ -24,13 +24,18 @@ export async function handleAPI(request,env) {
   try {
     const url=new URL(request.url), path=url.pathname.replace(/^\/api/,'').replace(/\/$/,'')||'/';
     // Preview selection is a product view, not an external customer sign-in.
-    // Production additionally requires the Site owner's dispatch-authenticated identity.
+    // Public visitors can load the sign-in page; records remain owner-authorized.
     const identity=request.headers.get('oai-authenticated-user-id');
-    if(!identity&&!env.__LOCAL_PREVIEW)throw new ApiError('Sign in to this private workspace.',401);
+    if(!identity&&!env.__LOCAL_PREVIEW)throw new ApiError('Sign in to open the owner workspace.',401);
+    if(!env.__LOCAL_PREVIEW){
+      const ownerEmail=env.FITBRO_OWNER_EMAIL?.trim().toLowerCase();
+      if(!ownerEmail)throw new ApiError('Owner access is not configured. Please try again later.',503);
+      if(request.headers.get('oai-authenticated-user-email')?.trim().toLowerCase()!==ownerEmail)throw new ApiError('This ChatGPT account is not the gym owner. Please switch to the owner account.',403);
+    }
     const store=getStore(env.DB);
     await seed(store);
     let owner=await mustGet(store,'owner','owner');
-    if(identity && owner.platformUserId && owner.platformUserId!==identity)throw new ApiError('This workspace is private to its owner.',403);
+    if(identity && owner.platformUserId && owner.platformUserId!==identity)throw new ApiError('This workspace is restricted to its owner.',403);
     if(identity&&!owner.platformUserId){owner={...owner,platformUserId:identity};await store.put('owner',owner);}
     const token=(request.headers.get('Authorization')||'').replace(/^Bearer /,'');
     const previewId=token.startsWith('sites-preview:')?token.slice(14):null;

@@ -38,6 +38,7 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  sessionError: string | null;
   login: (user: User, token: string) => Promise<void>;
   logout: () => Promise<void>;
   restoreSession: () => Promise<void>;
@@ -48,16 +49,21 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null,
   isLoading: true,
+  sessionError: null,
   login: async (user, token) => {
     localStorage.setItem('jwt_token', token);
     localStorage.setItem('auth_role', user.role);
-    set({ user, token, isLoading: false });
+    set({ user, token, isLoading: false, sessionError: null });
   },
   logout: async () => {
     const role = localStorage.getItem('auth_role');
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('auth_role');
-    set({ user: null, token: null, isLoading: false });
+    set({ user: null, token: null, isLoading: false, sessionError: null });
+    if (import.meta.env.VITE_SITES_MODE === 'true') {
+      window.location.assign('/signout-with-chatgpt?return_to=%2F');
+      return;
+    }
     window.location.assign(role === 'customer' ? '/customer/login' : '/login');
   },
   restoreSession: async () => {
@@ -68,7 +74,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         const token = response.data.token;
         localStorage.setItem('jwt_token', token);
         localStorage.setItem('auth_role', user.role);
-        set({ user: user.role === 'customer' ? mapCustomer(user) : mapOwner(user), token, isLoading: false });
+        set({ user: user.role === 'customer' ? mapCustomer(user) : mapOwner(user), token, isLoading: false, sessionError: null });
         return;
       }
       const token = localStorage.getItem('jwt_token');
@@ -91,7 +97,10 @@ export const useAuthStore = create<AuthState>((set) => ({
           return;
         }
       }
-    } catch {
+    } catch (err: any) {
+      if (import.meta.env.VITE_SITES_MODE === 'true') {
+        set({ sessionError: err.response?.status === 401 ? null : err.response?.data?.message || 'The workspace is temporarily unavailable. Please try again.' });
+      }
       localStorage.removeItem('jwt_token');
       localStorage.removeItem('auth_role');
     }

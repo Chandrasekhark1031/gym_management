@@ -2,13 +2,15 @@
 
 Production-ready monorepo for the GYM Management web application, containing both frontend (React + Vite + Tailwind CSS) and backend (Node.js + Express + PostgreSQL).
 
-## FitBro upgrade and private Sites workspace
+## FitBro upgrade and public Sites entry
 
 The refreshed owner and customer experiences include a responsive navigation drawer, live revenue and membership health, searchable members, plan cards, renewal reminders, payment review, and filtered CSV export. Customer payment reports remain pending until an owner confirms them; revenue totals include only confirmed payments. Reminders are in-app notifications, and payment reporting records an offline payment rather than transferring money.
 
-The private Sites build uses a Cloudflare-compatible API in `apps/sites-api`, persistent D1 records, and R2 photo/logo/QR uploads. The existing Express/PostgreSQL application remains available with `npm run dev`; no existing PostgreSQL database is migrated or copied into the private workspace.
+The Sites build uses a Cloudflare-compatible API in `apps/sites-api`, persistent D1 records, and R2 photo/logo/QR uploads. The existing Express/PostgreSQL application remains available with `npm run dev`; no existing PostgreSQL database is migrated or copied into the workspace.
 
-Sites authenticates the workspace owner through ChatGPT. The **Customer view** selector lets that owner inspect and use a member's portal inside the private workspace. It does not grant external members access or create separate customer credentials. The first visit creates clearly identified fictional starter data. Configure your gym's contact and UPI details in **My profile** before using them with real members; the starter workspace has no payment address configured.
+Anyone with the public URL can open the sign-in page. Sites authenticates the workspace owner through ChatGPT, and the API checks the trusted dispatched email against the server-only `FITBRO_OWNER_EMAIL` setting before initializing or reading records. Configure this runtime value through Sites; absent configuration denies access. A second identity check binds the workspace to the authenticated owner. Public visitors cannot view member records, payment history, or uploads.
+
+The **Customer view** selector lets the owner inspect and use a member's portal inside the protected workspace. It does not grant external members access or create separate customer credentials. The first owner visit creates clearly identified fictional starter data. Configure your gym's contact and UPI details in **My profile** before using them with real members; the starter workspace has no payment address configured.
 
 Use Node.js 24 or newer for the Sites preview and workflow tests:
 
@@ -23,7 +25,7 @@ npm run build:sites
 
 The local Sites preview stores disposable data under the ignored `.sites-runtime` directory. Its development-only `/__responsive?width=320` harness renders real iframe viewports; it is excluded from production.
 
-Validation includes eight API workflow tests covering owner isolation, member validation, renewal, payment reporting and confirmation, reminder scoping, history protection, and upload validation. Browser checks cover 320px, 375px, 768px, and 1440px layouts, plus member creation, membership assignment, customer payment reporting, and owner confirmation. The Express controllers receive syntax validation; PostgreSQL integration requires a configured database. Optional WebMCP registration is feature-detected and does not affect ordinary browser use.
+Validation includes nine API workflow tests covering public visitor isolation, owner isolation, member validation, renewal, payment reporting and confirmation, reminder scoping, history protection, and upload validation. Browser checks cover 320px, 375px, 768px, and 1440px workspace layouts, plus member creation, membership assignment, customer payment reporting, and owner confirmation. The Express controllers receive syntax validation; PostgreSQL integration requires a configured database. Optional WebMCP registration is feature-detected and does not affect ordinary browser use.
 
 ---
 

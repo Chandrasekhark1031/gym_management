@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/useAuthStore';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
+import SitesSignIn from './pages/auth/SitesSignIn';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 import Customers from './pages/owner/Customers';
 import CustomerDetail from './pages/owner/CustomerDetail';
@@ -25,6 +26,7 @@ import { LoadingState } from './components/ui/PageStates';
 
 export default function App() {
   const { user, isLoading, restoreSession } = useAuthStore();
+  const location = useLocation();
 
   useEffect(() => {
     restoreSession();
@@ -37,6 +39,8 @@ export default function App() {
       </div>
     );
   }
+
+  if (import.meta.env.VITE_SITES_MODE === 'true' && (!user || location.pathname === '/login')) return <SitesSignIn />;
 
   return (
     <Routes>

@@ -29,7 +29,7 @@ export default function GymSidebar({ customer = false, onNavigate }: { customer?
     <div className="gym-sidebar-bottom">
       {!customer && <div className="gym-sidebar-tip"><div className="gym-tip-icon"><CalendarDays size={18} /></div><strong>Keep your community moving.</strong><p>A little follow-up goes a long way. Check renewals for this week.</p><NavLink onClick={onNavigate} to="/memberships?status=EXPIRING_SOON">View renewals <ArrowUpRight size={14} /></NavLink></div>}
       <nav aria-label="Account navigation" className="gym-nav">{link(customer ? '/customer/profile' : '/profile', 'My profile', UserRound)}{!customer && link('/settings', 'Settings', Settings2)}</nav>
-      <div className="gym-sidebar-user"><div className="gym-user-avatar">{user?.name?.split(' ').map(n => n[0]).slice(0,2).join('')}</div><div><strong>{user?.name || 'Gym manager'}</strong><small>{sites ? 'Private workspace' : 'Signed in'}</small></div>{!sites && <button type="button" onClick={logout} aria-label="Logout"><LogOut size={17} /></button>}</div>
+      <div className="gym-sidebar-user"><div className="gym-user-avatar">{user?.name?.split(' ').map(n => n[0]).slice(0,2).join('')}</div><div><strong>{user?.name || 'Gym manager'}</strong><small>{sites ? customer ? 'Member preview' : 'Owner workspace' : 'Signed in'}</small></div><button type="button" onClick={logout} aria-label="Logout"><LogOut size={17} /></button></div>
     </div>
   </aside>;
 }

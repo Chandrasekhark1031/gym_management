@@ -1,5 +1,5 @@
 // One record per domain object. Prepared D1 statements and atomic batches avoid
-// overwriting other members' changes. The Site is protected by owner-only access.
+// overwriting other members' changes. The API enforces the configured owner identity.
 export const getStore = (DB) => {
   if (!DB) throw new Error('Workspace storage is unavailable.');
   return {
