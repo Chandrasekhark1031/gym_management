@@ -18,3 +18,5 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 
 .gym-hero-actions{flex-shrink:0}.gym-hero-actions button{white-space:nowrap}
+
+.fitbro-auth input{min-height:46px;border-radius:10px;font-size:16px}.fitbro-auth input:focus{--tw-ring-color:#719852;border-color:#719852}

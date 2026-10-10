@@ -19,7 +19,6 @@ export function sitePreview() {
         const parts=[];for await(const part of req)parts.push(part);
         const body=Buffer.concat(parts),method=req.method||'GET',headers=new Headers();
         for(const [key,value] of Object.entries(req.headers))if(value)headers.set(key,Array.isArray(value)?value.join(','):value);
-        headers.set('oai-authenticated-user-id',env.authenticatedUser);
         const request=new Request(`http://${req.headers.host}${req.url}`,{method,headers,...(!['GET','HEAD'].includes(method)?{body}: {})});
         const response=await handleAPI(request,env);res.statusCode=response.status;response.headers.forEach((v,k)=>res.setHeader(k,v));if(response.body)Readable.fromWeb(response.body).pipe(res);else res.end();
       }catch(error){console.error(error.message);res.statusCode=500;res.end('Preview request failed');}

@@ -29,7 +29,7 @@ interface PasswordInputProps extends Omit<InputProps, 'type'> {
   label: string;
 }
 
-export function PasswordInput({ label, error, id, className = '', ...props }: PasswordInputProps) {
+export function PasswordInput({ label, error, hint, id, className = '', ...props }: PasswordInputProps) {
   const [visible, setVisible] = useState(false);
   const inputId = id || `${label.toLowerCase().replace(/\s+/g, '-')}-password`;
 
@@ -52,6 +52,7 @@ export function PasswordInput({ label, error, id, className = '', ...props }: Pa
           {visible ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
       </div>
+      {hint && !error && <p className="text-xs text-gray-500 mt-1">{hint}</p>}
       {error && <p className="text-xs text-red-600 mt-1" role="alert">{error}</p>}
     </div>
   );

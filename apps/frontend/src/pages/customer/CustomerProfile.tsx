@@ -50,7 +50,7 @@ export default function CustomerProfile() {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!passwordForm.currentPassword) errs.currentPassword = 'Required';
-    if (passwordForm.newPassword.length < 6) errs.newPassword = 'At least 6 characters';
+    if (passwordForm.newPassword.length < 8) errs.newPassword = 'Use at least 8 characters with letters and numbers';
     if (passwordForm.newPassword !== passwordForm.confirmPassword) errs.confirmPassword = 'Passwords do not match';
     setPasswordErrors(errs);
     if (Object.keys(errs).length) return;
@@ -101,7 +101,7 @@ export default function CustomerProfile() {
         </CardBody>
       </Card>
 
-      {import.meta.env.VITE_SITES_MODE !== 'true' && <Card>
+      <Card>
         <CardBody>
           <form onSubmit={changePassword} className="space-y-4 max-w-lg">
             <h2 className="font-semibold text-gray-900">Change Password</h2>
@@ -111,7 +111,7 @@ export default function CustomerProfile() {
             <Button type="submit" loading={saving}>Update Password</Button>
           </form>
         </CardBody>
-      </Card>}
+      </Card>
     </div>
   );
 }

@@ -216,7 +216,7 @@ export default function CustomerDetail() {
             <Button variant="secondary" onClick={() => setAssignOpen(true)}>Assign Membership</Button>
             <Button variant="secondary" onClick={() => activeMembership && openRenew(activeMembership)} disabled={!activeMembership}>Renew Membership</Button>
             <Button variant="secondary" onClick={() => setPaymentOpen(true)}>Add Payment</Button>
-            {import.meta.env.VITE_SITES_MODE !== 'true' && <Button variant="secondary" onClick={() => setPasswordOpen(true)}>Change Password</Button>}
+            <Button variant="secondary" onClick={() => setPasswordOpen(true)}>Reset login password</Button>
             <Button
               variant="secondary"
               onClick={() => setConfirm({ type: 'status', next: edit.accountStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' })}
@@ -391,7 +391,7 @@ export default function CustomerDetail() {
         </>
       }>
         <form id="customer-password-form" onSubmit={savePassword}>
-          <PasswordInput label="New login password *" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+          <PasswordInput label="New login password *" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete="new-password" hint="Use 8+ characters with letters and numbers. Share the new password with your customer." />
         </form>
       </Modal>
 

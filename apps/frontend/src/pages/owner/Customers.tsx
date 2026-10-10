@@ -118,7 +118,7 @@ export default function Customers() {
         await gymService.customers.update(editCustomer.id, {
           name: form.name,
           phone: form.phone,
-          email: form.email || undefined,
+          email: form.email,
           address: form.address || undefined,
           ...(form.password ? { password: form.password } : {}),
         });
@@ -136,7 +136,8 @@ export default function Customers() {
           membershipStatus: res.customer.membershipStatus || 'NO_MEMBERSHIP',
           accountStatus: res.customer.accountStatus,
         });
-        showToast('Customer added successfully. You can add a photo below.', 'success');
+        setForm((current) => ({ ...current, password: '' }));
+        showToast('Customer login created. Share the email and password with your customer.', 'success');
       }
       load();
       triggerRefresh();
@@ -315,14 +316,17 @@ export default function Customers() {
         <form id="customer-form" className="space-y-3" onSubmit={saveCustomer}>
           <Input label="Full Name *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <Input label="Phone *" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
-          <Input label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <Input label="Login email *" type="email" autoComplete="off" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           <Input label="Address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-          {import.meta.env.VITE_SITES_MODE !== 'true' && <PasswordInput
-            label={editCustomer ? 'New login password' : 'Login Password'}
+          <PasswordInput
+            label={editCustomer ? 'New login password' : 'Login password *'}
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
-            hint={editCustomer ? 'Leave blank to keep current password.' : 'Optional. Required for customer portal login.'}
-          />}
+            required={!editCustomer}
+            minLength={8}
+            autoComplete="new-password"
+            hint={editCustomer ? 'Leave blank to keep current password.' : 'Use 8+ characters with letters and numbers. Give this email and password to your customer.'}
+          />
           {editCustomer?.id && (
             <ProfilePhotoUpload
               photoUrl={editCustomer.photoUrl}

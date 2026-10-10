@@ -134,10 +134,10 @@ const createCustomer = async (req, res, next) => {
     if (!isValidPhone(phone)) {
       return res.status(400).json({ success: false, message: 'Invalid phone number' });
     }
-    if (email && !isEmail(email)) {
+    if (!email || !isEmail(email)) {
       return res.status(400).json({ success: false, message: 'Invalid email' });
     }
-    if (password && !isStrongPassword(password)) {
+    if (!password || !isStrongPassword(password)) {
       return res.status(400).json({ success: false, message: 'Password must be at least 8 characters with letters and numbers' });
     }
 

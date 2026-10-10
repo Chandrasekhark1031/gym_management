@@ -47,14 +47,6 @@ export const gymService = {
 };
 
 export const customerPortalService = {
-  register: (data: {
-    name: string;
-    email: string;
-    phone: string;
-    address?: string;
-    password: string;
-    confirmPassword: string;
-  }) => api.post('/customer/auth/register', data).then((r) => r.data),
   login: (data: { identifier: string; password: string }) => api.post('/customer/auth/login', data).then((r) => r.data),
   me: () => api.get('/customer/auth/me').then((r) => r.data),
   dashboard: () => api.get('/customer/dashboard').then((r) => r.data),

@@ -57,13 +57,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   logout: async () => {
     const role = localStorage.getItem('auth_role');
+    if (import.meta.env.VITE_SITES_MODE === 'true') await api.post('/auth/logout');
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('auth_role');
     set({ user: null, token: null, isLoading: false, sessionError: null });
-    if (import.meta.env.VITE_SITES_MODE === 'true') {
-      window.location.assign('/signout-with-chatgpt?return_to=%2F');
-      return;
-    }
     window.location.assign(role === 'customer' ? '/customer/login' : '/login');
   },
   restoreSession: async () => {

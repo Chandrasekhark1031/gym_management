@@ -23,7 +23,7 @@ export default function Settings() {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!passwordForm.currentPassword) errs.currentPassword = 'Required';
-    if (passwordForm.newPassword.length < 6) errs.newPassword = 'At least 6 characters';
+    if (passwordForm.newPassword.length < 8) errs.newPassword = 'Use at least 8 characters with letters and numbers';
     if (passwordForm.newPassword !== passwordForm.confirmPassword) errs.confirmPassword = 'Passwords do not match';
     setPasswordErrors(errs);
     if (Object.keys(errs).length) return;
@@ -73,7 +73,6 @@ export default function Settings() {
     }
   };
 
-  if (import.meta.env.VITE_SITES_MODE === 'true') return <div className="space-y-6"><PageHeader title="Workspace settings" description="Your private gym workspace"/><Card><CardBody className="space-y-4"><h2 className="font-semibold">Private access</h2><p className="text-sm text-gray-500">This workspace uses your ChatGPT sign-in. Customer view lets you preview a member’s portal inside your private workspace.</p><p className="text-sm text-gray-500">Starter members and payment records are fictional examples. Configure your gym contact and UPI details before using them.</p><Link to="/profile" className="gym-text-link">Update gym details →</Link></CardBody></Card><Card><CardBody className="space-y-3"><h2 className="font-semibold">Gym contact number</h2>{error && <ErrorState message={error}/>}<Input label="Phone number" value={phone} onChange={e=>setPhone(e.target.value)}/><Button loading={loading} onClick={changePhone}>Save contact number</Button></CardBody></Card></div>;
   return (
     <div className="space-y-6">
       <PageHeader

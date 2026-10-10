@@ -14,7 +14,7 @@ const schema = z
     name: z.string().min(2, 'Full name must be at least 2 characters'),
     gymName: z.string().min(2, 'Gym name must be at least 2 characters'),
     email: z.string().email('Enter a valid email address'),
-    phone: z.string().min(10, 'Enter a valid phone number (at least 10 digits)'),
+    phone: z.string().regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number'),
     address: z.string().optional(),
     password: z
       .string()
@@ -54,11 +54,11 @@ export default function Register() {
 
   return (
     <AuthCard
-      title="Gym Owner Registration"
-      subtitle="Create your gym owner account"
+      title="Create your owner account."
+      subtitle="Set up your gym, then create login accounts for your customers."
       footer={
-        <Link to="/login" className="text-sm text-blue-600 hover:underline">
-          Already have an account? Login
+        <Link to="/login" className="text-sm text-[#174b40] hover:underline">
+          Already an owner? Log in
         </Link>
       }
     >
@@ -75,17 +75,17 @@ export default function Register() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input label="Full Name *" error={errors.name?.message} {...register('name')} />
         <Input label="Gym Name *" error={errors.gymName?.message} {...register('gymName')} />
-        <Input label="Email *" type="email" error={errors.email?.message} {...register('email')} />
-        <Input label="Phone Number *" error={errors.phone?.message} {...register('phone')} />
+        <Input label="Email *" type="email" autoComplete="username" error={errors.email?.message} {...register('email')} />
+        <Input label="Phone Number *" type="tel" inputMode="numeric" maxLength={10} error={errors.phone?.message} {...register('phone')} />
         <Input label="Gym Address" error={errors.address?.message} {...register('address')} />
-        <PasswordInput label="Password *" error={errors.password?.message} {...register('password')} />
+        <PasswordInput label="Password *" autoComplete="new-password" hint="Use 8+ characters with letters and numbers." error={errors.password?.message} {...register('password')} />
         <PasswordInput
-          label="Confirm Password *"
+          label="Confirm Password *" autoComplete="new-password"
           error={errors.confirmPassword?.message}
           {...register('confirmPassword')}
         />
         <Button type="submit" className="w-full" loading={isSubmitting}>
-          Register as Owner
+          Create owner account
         </Button>
       </form>
     </AuthCard>

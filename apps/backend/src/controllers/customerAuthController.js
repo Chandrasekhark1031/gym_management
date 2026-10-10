@@ -1,25 +1,7 @@
-const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const pool = require('../config/database');
 const { generateCustomerToken } = require('../utils/jwt');
 const { isEmail, normalizePhone, isValidPhone, isStrongPassword } = require('../utils/validators');
-
-const getRegistrationOwnerId = async () => {
-  const result = await pool.query('SELECT id FROM gym_owners ORDER BY created_at ASC LIMIT 1');
-  return result.rows[0]?.id || null;
-};
-
-const findCustomerByEmailOrPhone = async (email, phone) => {
-  const phoneDigits = normalizePhone(phone);
-  const result = await pool.query(
-    `SELECT id FROM customers
-     WHERE LOWER(email) = LOWER($1)
-        OR phone = $2
-        OR regexp_replace(phone, '[^0-9]', '', 'g') = $3`,
-    [email.trim().toLowerCase(), phone.trim(), phoneDigits]
-  );
-  return result.rows[0] || null;
-};
 
 const findCustomerByIdentifier = async (identifier) => {
   const trimmed = identifier.trim();
@@ -120,81 +102,6 @@ const getMe = async (req, res, next) => {
   }
 };
 
-const register = async (req, res, next) => {
-  try {
-    const { name, email, phone, address, password, confirmPassword } = req.body;
-
-    if (!name || !email || !phone || !password || !confirmPassword) {
-      return res.status(400).json({ success: false, message: 'Please fill all required fields' });
-    }
-
-    if (name.trim().length < 2) {
-      return res.status(400).json({ success: false, message: 'Full name must be at least 2 characters' });
-    }
-
-    if (!isEmail(email)) {
-      return res.status(400).json({ success: false, message: 'Invalid email format' });
-    }
-
-    if (!isValidPhone(phone)) {
-      return res.status(400).json({ success: false, message: 'Invalid phone number' });
-    }
-
-    if (!isStrongPassword(password)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Password must be at least 8 characters and include letters and numbers',
-      });
-    }
-
-    if (password !== confirmPassword) {
-      return res.status(400).json({ success: false, message: 'Passwords do not match' });
-    }
-
-    const ownerId = await getRegistrationOwnerId();
-    if (!ownerId) {
-      return res.status(503).json({ success: false, message: 'Customer registration is unavailable right now' });
-    }
-
-    const duplicate = await findCustomerByEmailOrPhone(email, phone);
-    if (duplicate) {
-      return res.status(400).json({ success: false, message: 'Email or phone number already registered' });
-    }
-
-    const passwordHash = await bcrypt.hash(password, 10);
-    const customerId = crypto.randomUUID();
-
-    await pool.query(
-      `INSERT INTO customers (
-        id, owner_id, name, email, phone, address, password_hash,
-        email_verified, account_status, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, FALSE, 'ACTIVE', NOW(), NOW())`,
-      [
-        customerId,
-        ownerId,
-        name.trim(),
-        email.trim().toLowerCase(),
-        phone.trim(),
-        address || null,
-        passwordHash,
-      ]
-    );
-
-    return res.status(201).json({
-      success: true,
-      message: 'Registration successful. You can now login.',
-      customer: {
-        id: customerId,
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        phone: phone.trim(),
-      },
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
 const changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword, confirmPassword } = req.body;
@@ -228,7 +135,6 @@ const changePassword = async (req, res, next) => {
 };
 
 module.exports = {
-  register,
   login,
   getMe,
   changePassword,
