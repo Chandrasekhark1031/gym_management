@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/useAuthStore';
+import LandingPage from './pages/LandingPage';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
@@ -25,12 +26,22 @@ import { LoadingState } from './components/ui/PageStates';
 
 export default function App() {
   const { user, isLoading, restoreSession } = useAuthStore();
+  const location = useLocation();
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      if (location.hash && location.pathname === '/') {
+        const target = document.getElementById(location.hash.slice(1));
+        target?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      } else window.scrollTo({ top: 0, behavior: 'instant' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [location.pathname, location.hash]);
 
   useEffect(() => {
     restoreSession();
   }, [restoreSession]);
 
-  if (isLoading) {
+  if (isLoading && location.pathname !== '/') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingState message="Loading application..." />
@@ -41,9 +52,12 @@ export default function App() {
 
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       {!user ? (
         <>
           <Route path="/login" element={<Login />} />
+          <Route path="/admin/login" element={<Navigate to="/login" replace />} />
+          <Route path="/admin/register" element={<Navigate to="/owner/register" replace />} />
           <Route path="/register" element={<Register />} />
           <Route path="/owner/register" element={<Register />} />
           <Route path="/customer/login" element={<Login defaultRole="customer" />} />

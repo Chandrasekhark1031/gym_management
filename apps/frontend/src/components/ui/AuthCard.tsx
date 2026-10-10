@@ -1,8 +1,10 @@
 import { ReactNode } from 'react';
-import { Dumbbell, ArrowUpRight, Users, CalendarDays, Wallet } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import PublicHeader from '../layout/PublicHeader';
+import { Dumbbell, ArrowLeft, Users, CalendarDays, Wallet } from 'lucide-react';
 interface AuthCardProps { title: string; subtitle?: string; children: ReactNode; footer?: ReactNode; topElement?: ReactNode; }
 export default function AuthCard({ title, subtitle, children, footer, topElement }: AuthCardProps) {
-  return <main className="fitbro-auth min-h-screen flex items-center justify-center bg-[#f6f8f5] p-4 sm:p-8">
+  return <div className="fitbro-public"><PublicHeader /><main className="fitbro-auth min-h-screen flex items-center justify-center bg-[#f6f8f5] p-4 sm:p-8">
     <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-[#e3e8dd] bg-white shadow-xl lg:grid-cols-2">
       <section className="relative hidden flex-col justify-between overflow-hidden bg-[#142c26] p-10 text-white lg:flex">
         <div className="relative z-10 flex items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-xl bg-[#c2f17d] text-[#142c26]"><Dumbbell size={27} /></div><div><strong className="text-2xl tracking-wide">FITBRO</strong><p className="text-[10px] tracking-[.2em] text-[#aec0ae]">GYM MANAGEMENT</p></div></div>
@@ -11,7 +13,7 @@ export default function AuthCard({ title, subtitle, children, footer, topElement
         <div aria-hidden="true" className="absolute -right-44 top-28 h-96 w-96 rounded-full border-[50px] border-[#243f32]" />
       </section>
       <section className="min-w-0 px-5 py-8 sm:p-10 lg:px-12 lg:py-12">
-        <div className="mb-8 flex items-center gap-2 font-bold text-[#174b40] lg:hidden"><Dumbbell size={23} />FITBRO<ArrowUpRight size={15} className="ml-auto" /></div>
+        <Link to="/" className="mb-7 inline-flex min-h-8 items-center gap-2 text-sm text-[#6b8460]"><ArrowLeft size={15} />Back to home</Link>
         {topElement && <div className="mb-8">{topElement}</div>}
         <h1 className="text-2xl font-bold tracking-tight text-[#20372e] sm:text-3xl">{title}</h1>
         {subtitle && <p className="mt-3 mb-7 text-sm leading-relaxed text-[#7c8b73]">{subtitle}</p>}
@@ -19,5 +21,5 @@ export default function AuthCard({ title, subtitle, children, footer, topElement
         {footer && <div className="mt-7 border-t border-[#e8ede3] pt-6 text-center">{footer}</div>}
       </section>
     </div>
-  </main>;
+  </main></div>;
 }

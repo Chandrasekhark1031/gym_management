@@ -31,7 +31,7 @@ export default function Layout() {
         </div>
       </header>
       <main id="main-content" className="gym-main" tabIndex={-1}><Outlet /></main>
-      <footer className="gym-footer"><span>FITBRO <span>·</span> A stronger gym, together.</span><span><ShieldCheck size={13} />Signed in</span></footer>
+      <footer className="gym-footer"><Link to="/" aria-label="FitBro home">FITBRO <span>·</span> A stronger gym, together.</Link><span><ShieldCheck size={13} />Signed in</span></footer>
     </div>
   </div>;
 }

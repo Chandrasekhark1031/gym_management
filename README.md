@@ -4,6 +4,8 @@ Production-ready monorepo for the GYM Management web application, containing bot
 
 ## FitBro upgrade and public Sites entry
 
+The public home page introduces FitBro with a responsive navbar, animated gym hero, feature sections, setup guide and separate owner/customer portal links. The navbar **Login** menu opens **Owner / Admin login**, **Customer login**, and **Create owner account**. Login and registration pages include the same navigation and a return-home link. Scroll reveals, floating hero cards and hover effects respect reduced-motion preferences; content remains visible when animation support is unavailable. The landing page is available immediately while an existing session is restored.
+
 The refreshed owner and customer experiences include a responsive navigation drawer, live revenue and membership health, searchable members, plan cards, renewal reminders, payment review, and filtered CSV export. Customer payment reports remain pending until an owner confirms them; revenue totals include only confirmed payments. Reminders are in-app notifications, and payment reporting records an offline payment rather than transferring money.
 
 The Sites build uses a Cloudflare-compatible API in `apps/sites-api`, persistent D1 records, and R2 photo/logo/QR uploads. The existing Express/PostgreSQL application remains available with `npm run dev`; no existing PostgreSQL database is migrated or copied into the workspace.
