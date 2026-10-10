@@ -37,6 +37,7 @@ export const gymService = {
   notifications: {
     list: () => api.get('/notifications').then((r) => r.data),
     markRead: (id: string) => api.patch(`/notifications/${id}/read`).then((r) => r.data),
+    remind: (customerId: string) => api.post('/notifications/remind', { customerId }).then((r) => r.data),
   },
   dashboard: {
     stats: () => api.get('/dashboard/stats').then((r) => r.data),
@@ -46,14 +47,6 @@ export const gymService = {
 };
 
 export const customerPortalService = {
-  register: (data: {
-    name: string;
-    email: string;
-    phone: string;
-    address?: string;
-    password: string;
-    confirmPassword: string;
-  }) => api.post('/customer/auth/register', data).then((r) => r.data),
   login: (data: { identifier: string; password: string }) => api.post('/customer/auth/login', data).then((r) => r.data),
   me: () => api.get('/customer/auth/me').then((r) => r.data),
   dashboard: () => api.get('/customer/dashboard').then((r) => r.data),
@@ -70,12 +63,13 @@ export const customerPortalService = {
   notifications: () => api.get('/customer/notifications').then((r) => r.data),
   markNotificationRead: (id: string) => api.patch(`/customer/notifications/${id}/read`).then((r) => r.data),
   gymPayment: () => api.get('/customer/gym-payment').then((r) => r.data),
+  reportPayment: (data: { amount: number; paymentMethod: string; notes: string; membershipId?: string }) => api.post('/customer/payments/report', data).then((r) => r.data),
   changePassword: (data: any) => api.post('/customer/auth/change-password', data).then((r) => r.data),
 };
 
 export const assetUrl = (path?: string | null) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  const base = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api$/, '');
+  const base = (import.meta.env.VITE_API_URL || (import.meta.env.VITE_SITES_MODE === 'true' ? '/api' : 'http://localhost:5000/api')).replace(/\/api$/, '');
   return `${base}${path}`;
 };

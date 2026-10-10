@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { MoreHorizontal, Search } from 'lucide-react';
 import { gymService, assetUrl } from '../../services/gymService';
 import { useGymStore } from '../../store/useGymStore';
@@ -43,10 +43,11 @@ type ConfirmState =
 
 export default function Customers() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { refreshKey, triggerRefresh } = useGymStore();
   const showToast = useToastStore((s) => s.show);
   const [customers, setCustomers] = useState<CustomerRow[]>([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('q') || '');
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -70,6 +71,8 @@ export default function Customers() {
       setLoading(false);
     }
   };
+
+  useEffect(() => { setSearch(searchParams.get('q') || ''); if (searchParams.get('add') === '1') { setShowForm(true); searchParams.delete('add'); setSearchParams(searchParams, { replace: true }); } }, [searchParams, setSearchParams]);
 
   useEffect(() => { load(); }, [search, filter, refreshKey]);
 
@@ -115,7 +118,7 @@ export default function Customers() {
         await gymService.customers.update(editCustomer.id, {
           name: form.name,
           phone: form.phone,
-          email: form.email || undefined,
+          email: form.email,
           address: form.address || undefined,
           ...(form.password ? { password: form.password } : {}),
         });
@@ -133,7 +136,8 @@ export default function Customers() {
           membershipStatus: res.customer.membershipStatus || 'NO_MEMBERSHIP',
           accountStatus: res.customer.accountStatus,
         });
-        showToast('Customer added successfully. You can add a photo below.', 'success');
+        setForm((current) => ({ ...current, password: '' }));
+        showToast('Customer login created. Share the email and password with your customer.', 'success');
       }
       load();
       triggerRefresh();
@@ -312,13 +316,16 @@ export default function Customers() {
         <form id="customer-form" className="space-y-3" onSubmit={saveCustomer}>
           <Input label="Full Name *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <Input label="Phone *" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
-          <Input label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <Input label="Login email *" type="email" autoComplete="off" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           <Input label="Address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
           <PasswordInput
-            label={editCustomer ? 'New login password' : 'Login Password'}
+            label={editCustomer ? 'New login password' : 'Login password *'}
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
-            hint={editCustomer ? 'Leave blank to keep current password.' : 'Optional. Required for customer portal login.'}
+            required={!editCustomer}
+            minLength={8}
+            autoComplete="new-password"
+            hint={editCustomer ? 'Leave blank to keep current password.' : 'Use 8+ characters with letters and numbers. Give this email and password to your customer.'}
           />
           {editCustomer?.id && (
             <ProfilePhotoUpload

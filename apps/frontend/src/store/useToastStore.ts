@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+let nextToastId = 0;
+
 type ToastType = 'success' | 'error' | 'info';
 
 interface ToastItem {
@@ -17,7 +19,7 @@ interface ToastState {
 export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
   show: (message, type = 'info') => {
-    const id = crypto.randomUUID();
+    const id = `toast_${Date.now()}_${nextToastId++}`;
     set((state) => ({ toasts: [...state.toasts, { id, type, message }] }));
     setTimeout(() => {
       set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));

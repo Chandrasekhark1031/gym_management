@@ -2,6 +2,35 @@
 
 Production-ready monorepo for the GYM Management web application, containing both frontend (React + Vite + Tailwind CSS) and backend (Node.js + Express + PostgreSQL).
 
+## FitBro upgrade and public Sites entry
+
+The public home page introduces FitBro with a responsive navbar, animated gym hero, feature sections, setup guide and separate owner/customer portal links. The navbar **Login** menu opens **Owner / Admin login**, **Customer login**, and **Create owner account**. Login and registration pages include the same navigation and a return-home link. Scroll reveals, floating hero cards and hover effects respect reduced-motion preferences; content remains visible when animation support is unavailable. The landing page is available immediately while an existing session is restored.
+
+The refreshed owner and customer experiences include a responsive navigation drawer, live revenue and membership health, searchable members, plan cards, renewal reminders, payment review, and filtered CSV export. Customer payment reports remain pending until an owner confirms them; revenue totals include only confirmed payments. Reminders are in-app notifications, and payment reporting records an offline payment rather than transferring money.
+
+The Sites build uses a Cloudflare-compatible API in `apps/sites-api`, persistent D1 records, and R2 photo/logo/QR uploads. The existing Express/PostgreSQL application remains available with `npm run dev`; no existing PostgreSQL database is migrated or copied into the workspace.
+
+Anyone with the public URL can open the owner and customer login pages. Owners can create an account with their gym details, email, and password. Each owner starts with an empty gym and can register customers in **Members** by entering a required login email and password. Customers have **Login only** at `/customer/login`; customer self-registration is disabled in both APIs. Give the customer their credentials directly. Owners can reset customer passwords or deactivate access from the member details page.
+
+The Sites API stores bcrypt password hashes separately from gym records and authenticates using secure HTTP-only session cookies. Owner records are scoped to their gym; customers can access only their own profile, membership, payments and notifications. Password resets revoke previous sessions. Member photos are restricted to their gym and the relevant customer. No ChatGPT identity or owner-email environment setting is required for application login.
+
+Migration `0002_cool_stick.sql` intentionally removes the old example dataset and creates empty account and gym tables. It does not seed replacement data. Configure your gym contact and UPI details in **My profile** before recording real payments.
+
+Use Node.js 24 or newer for the Sites preview and workflow tests:
+
+```bash
+npm ci
+npm run dev:sites -- --host 0.0.0.0 --port 4173 --strictPort
+npm run test:sites
+npm run build:sites
+```
+
+`npm run build` retains the normal frontend build; setting `VITE_SITES_MODE=true` or passing `--sites` selects the Sites build. The Sites build produces `dist/client`, `dist/server/index.js`, logical storage bindings, and schema migrations. Edit `apps/sites-api/db/schema.ts` and run `npm run db:generate` for future schema changes. Applied migrations and their metadata must remain immutable.
+
+The local Sites preview stores disposable data under the ignored `.sites-runtime` directory. Its development-only `/__responsive?width=320` harness renders real iframe viewports; it is excluded from production.
+
+Validation includes 16 API tests covering the empty-data migration, account registration/login, secure sessions, logout, customer credential resets, deactivation, owner/customer isolation, rate limits, cross-origin protection, membership renewal, payment confirmation, notifications and scoped uploads. TypeScript and the Sites production build are checked. The existing workspace layout was previously checked at 320px, 375px, 768px and 1440px; the updated login forms use a single-column mobile layout, but browser revalidation requires an available browser-control environment. The Express controllers receive syntax validation; PostgreSQL integration requires a configured database. Optional WebMCP registration is feature-detected and does not affect ordinary browser use.
+
 ---
 
 ## Project Structure
@@ -110,9 +139,8 @@ From the root directory:
 
 - **Frontend**: [http://localhost:3000](http://localhost:3000)
   - **Owner Login**: [http://localhost:3000/login](http://localhost:3000/login)
-  - **Owner Registration**: [http://localhost:3000/admin](http://localhost:3000/admin)
+  - **Owner Registration**: [http://localhost:3000/owner/register](http://localhost:3000/owner/register)
   - **Customer Login**: [http://localhost:3000/customer/login](http://localhost:3000/customer/login)
-  - **Customer Registration**: [http://localhost:3000/customer/register](http://localhost:3000/customer/register)
 - **Backend API**: [http://localhost:5000](http://localhost:5000)
   - Health Check: [http://localhost:5000/api/health](http://localhost:5000/api/health)
 

@@ -114,35 +114,16 @@ export default function Plans() {
       ) : plans.length === 0 ? (
         <EmptyState title="No plans found" description="Add your first membership plan to get started." />
       ) : (
-        <Card className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600">
-              <tr>
-                {['Plan Name', 'Duration', 'Price', 'Status', 'Customers', 'Actions'].map((h) => (
-                  <th key={h} className="p-3 text-left font-medium">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {plans.map((p) => (
-                <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50">
-                  <td className="p-3 font-medium">{p.name}</td>
-                  <td className="p-3">{p.durationValue} {p.durationUnit}</td>
-                  <td className="p-3">{p.price}</td>
-                  <td className="p-3"><Badge variant={p.isActive ? 'success' : 'neutral'}>{p.isActive ? 'Active' : 'Inactive'}</Badge></td>
-                  <td className="p-3">{p.customerCount ?? 0}</td>
-                  <td className="p-3">
-                    <div className="flex flex-wrap gap-2">
-                      <button type="button" className="text-blue-600 hover:underline" onClick={() => openEdit(p)}>Edit</button>
-                      <button type="button" className="text-gray-700 hover:underline" onClick={() => toggleStatus(p)}>{p.isActive ? 'Deactivate' : 'Activate'}</button>
-                      <button type="button" className="text-red-600 hover:underline" onClick={() => setDeleteId(p.id)}>Delete</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
+        <div className="gym-plan-cards">
+          {plans.map((p, i) => <article key={p.id} className={`gym-plan-card ${!p.isActive ? 'inactive' : ''}`}>
+            <div className="flex justify-between items-center"><span className="gym-eyebrow">PLAN {String(i + 1).padStart(2, '0')}</span><Badge variant={p.isActive ? 'success' : 'neutral'}>{p.isActive ? 'Available' : 'Paused'}</Badge></div>
+            <h2>{p.name}</h2><span className="text-[11px] text-[#889879]">{p.durationValue} {Number(p.durationValue) === 1 ? p.durationUnit.replace(/s$/, '') : p.durationUnit} membership</span>
+            <div className="price">{new Intl.NumberFormat('en-IN', { style:'currency', currency:'INR', maximumFractionDigits:0 }).format(p.price)}<small>/ plan</small></div>
+            <p>{p.description || 'A consistent routine. A stronger you.'}</p>
+            <div className="gym-plan-card-footer"><span>{p.customerCount ?? 0} memberships</span><span>Offline payments</span></div>
+            <div className="gym-plan-actions"><Button variant="secondary" onClick={() => openEdit(p)}>Edit plan</Button><button type="button" className="text-[#6f895b]" onClick={() => toggleStatus(p)}>{p.isActive ? 'Pause' : 'Activate'}</button><button type="button" className="text-red-500 ml-auto" onClick={() => setDeleteId(p.id)}>Delete</button></div>
+          </article>)}
+        </div>
       )}
 
       <Modal

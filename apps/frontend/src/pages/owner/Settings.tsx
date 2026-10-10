@@ -23,7 +23,7 @@ export default function Settings() {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!passwordForm.currentPassword) errs.currentPassword = 'Required';
-    if (passwordForm.newPassword.length < 6) errs.newPassword = 'At least 6 characters';
+    if (passwordForm.newPassword.length < 8) errs.newPassword = 'Use at least 8 characters with letters and numbers';
     if (passwordForm.newPassword !== passwordForm.confirmPassword) errs.confirmPassword = 'Passwords do not match';
     setPasswordErrors(errs);
     if (Object.keys(errs).length) return;

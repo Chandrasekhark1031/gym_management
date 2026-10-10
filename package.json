@@ -8,14 +8,20 @@
     "apps/backend"
   ],
   "scripts": {
-    "dev": "concurrently -k -p \"[{name}]\" -n \"BACKEND,FRONTEND\" -c \"green.bold,cyan.bold\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev": "node scripts/dev.mjs",
     "dev:backend": "npm run dev --workspace=backend",
     "dev:frontend": "npm run dev --workspace=frontend",
-    "build": "npm run build --workspace=frontend",
+    "build": "node scripts/build.mjs",
     "build:frontend": "npm run build --workspace=frontend",
-    "start": "npm run start --workspace=backend"
+    "start": "npm run start --workspace=backend",
+    "dev:sites": "node scripts/dev.mjs --sites",
+    "build:sites": "node scripts/build-sites.mjs",
+    "db:generate": "drizzle-kit generate",
+    "test:sites": "node --test apps/sites-api/tests/*.test.mjs"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "drizzle-kit": "^0.31.11",
+    "drizzle-orm": "^0.45.4"
   }
 }

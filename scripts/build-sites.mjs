@@ -1,0 +1,13 @@
+import { spawnSync } from 'node:child_process';
+import { mkdirSync, cpSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+const require=createRequire(import.meta.url);
+const result=spawnSync(process.platform==='win32'?'npm.cmd':'npm',['run','build:frontend'],{stdio:'inherit',env:{...process.env,VITE_SITES_MODE:'true',VITE_API_URL:'/api'}});if(result.status)process.exit(result.status);
+rmSync('dist',{recursive:true,force:true});mkdirSync('dist/server',{recursive:true});mkdirSync('dist/.openai',{recursive:true});
+cpSync('apps/frontend/dist','dist/client',{recursive:true});cpSync('.openai/hosting.json','dist/.openai/hosting.json');cpSync('drizzle','dist/.openai/drizzle',{recursive:true});
+const { build }=require('esbuild');
+await build({entryPoints:['apps/sites-api/index.mjs'],outfile:'dist/server/index.js',bundle:true,platform:'browser',format:'esm',target:'es2022'});
+writeFileSync('dist/server/package.json','{"type":"module"}\n');
+writeFileSync('dist/server/wrangler.json',JSON.stringify({name:'fitbro-gym',main:'index.js',compatibility_date:'2026-09-01',assets:{directory:'../client',binding:'ASSETS',not_found_handling:'single-page-application',run_worker_first:['/api/*']},d1_databases:[{binding:'DB',database_name:'fitbro-local',database_id:'local'}],r2_buckets:[{binding:'BUCKET',bucket_name:'fitbro-local'}]},null,2));
+const {default:worker}=await import('../dist/server/index.js');if(typeof worker.fetch!=='function')throw new Error('Worker fetch handler is missing.');
+console.log('Sites Worker, client assets and schema migrations built.');

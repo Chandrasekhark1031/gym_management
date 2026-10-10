@@ -10,3 +10,7 @@ coverage/
 uploads/
 *.pem
 *.key
+
+.sites-runtime/
+dist/
+.wrangler/

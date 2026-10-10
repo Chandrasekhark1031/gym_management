@@ -1,76 +1,20 @@
 import { useEffect, useState } from 'react';
-import { QrCode, Phone, Building2, User, CreditCard } from 'lucide-react';
+import QRCode from 'qrcode';
+import { QrCode, Phone, Copy, CheckCircle2 } from 'lucide-react';
 import { customerPortalService, assetUrl } from '../../services/gymService';
+import { useToastStore } from '../../store/useToastStore';
 import PageHeader from '../../components/ui/PageHeader';
+import Button from '../../components/ui/Button';
 import Card, { CardBody } from '../../components/ui/Card';
+import { Input, Select } from '../../components/ui/Input';
 import { LoadingState, ErrorState } from '../../components/ui/PageStates';
-
+import { PAYMENT_METHODS, formatPaymentMethod } from '../../utils/display';
 export default function CustomerGymPayment() {
-  const [gym, setGym] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    customerPortalService.gymPayment()
-      .then((res) => setGym(res.gym))
-      .catch(() => setError('Unable to load payment details. Please try again.'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <LoadingState message="Loading gym payment info..." />;
-  if (error) return <ErrorState message={error} />;
-  if (!gym) return null;
-
-  const displayQrUrl = gym.qrCodeUrl
-    ? assetUrl(gym.qrCodeUrl)
-    : gym.upiQrPayload
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(gym.upiQrPayload)}`
-    : null;
-
-  return (
-    <div className="space-y-6">
-      <PageHeader title="Gym UPI / QR" description="Pay your gym offline using UPI" />
-
-      <Card className="max-w-md">
-        <CardBody className="space-y-4">
-          <div className="flex items-center gap-2 text-gray-900">
-            <Building2 size={18} className="text-blue-600" />
-            <span className="font-semibold">{gym.name}</span>
-          </div>
-
-          {gym.bankCandidateName && (
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <User size={16} className="text-gray-500" />
-              <span className="text-gray-500">Candidate / Account Name:</span>
-              <span className="font-medium text-gray-900">{gym.bankCandidateName}</span>
-            </div>
-          )}
-
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Phone size={16} />
-            <span className="text-gray-500">Mobile:</span>
-            <span className="font-medium text-gray-900">{gym.paymentPhone || gym.phone}</span>
-          </div>
-
-          <div className="text-sm flex items-center gap-2">
-            <CreditCard size={16} className="text-gray-500" />
-            <span className="text-gray-500">UPI ID: </span>
-            <span className="font-medium text-gray-900">{gym.upiId || 'UPI ID not configured by gym owner.'}</span>
-          </div>
-
-          {displayQrUrl ? (
-            <div className="pt-2">
-              <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                <QrCode size={16} />
-                <span>Scan to pay via UPI (confirm payment with your gym)</span>
-              </div>
-              <img src={displayQrUrl} alt="UPI QR Code for gym payment" className="border border-gray-200 rounded-lg mx-auto max-h-56 object-contain p-2 bg-white" />
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500">QR code is available when the gym owner configures it.</p>
-          )}
-        </CardBody>
-      </Card>
-    </div>
-  );
+  const [gym,setGym]=useState<any>(null),[membership,setMembership]=useState<any>(null),[qr,setQr]=useState(''),[error,setError]=useState(''),[saving,setSaving]=useState(false),[submitted,setSubmitted]=useState(false);
+  const [form,setForm]=useState({amount:'',paymentMethod:'UPI',notes:''});const showToast=useToastStore(s=>s.show);
+  useEffect(()=>{Promise.all([customerPortalService.gymPayment(),customerPortalService.membership()]).then(([g,m])=>{setGym(g.gym);setMembership(m.membership);setForm(f=>({...f,amount:m.membership?.planPrice?String(m.membership.planPrice):''}));if(g.gym.upiQrPayload)QRCode.toDataURL(g.gym.upiQrPayload,{width:220,margin:2,errorCorrectionLevel:'M'}).then(setQr).catch(()=>setError('QR generation failed. Use the displayed UPI ID.'));}).catch(()=>setError('Unable to load payment details. Please try again.'));},[]);
+  const submit=async(e:React.FormEvent)=>{e.preventDefault();if(!Number.isFinite(Number(form.amount))||Number(form.amount)<=0){showToast('Enter a valid payment amount.','error');return;}setSaving(true);try{await customerPortalService.reportPayment({...form,amount:Number(form.amount),membershipId:membership?.id});setSubmitted(true);showToast('Payment reported. Your gym owner will confirm it.','success');}catch(e:any){showToast(e.response?.data?.message||'Payment could not be reported. Please try again.','error');}finally{setSaving(false);}};
+  const copy=async()=>{try{await navigator.clipboard.writeText(gym.upiId);showToast('UPI ID copied.','success');}catch{showToast('Select and copy the UPI ID shown below.','error');}};
+  if(!gym)return error?<ErrorState message={error}/>:<LoadingState message="Getting gym payment details…"/>;
+  return <div className="space-y-6"><PageHeader title="Pay & keep it on record" description="Pay your gym directly, then let the owner know."/>{error&&<ErrorState message={error}/>}<div className="grid lg:grid-cols-2 gap-6"><Card><CardBody className="space-y-4"><div className="gym-section-heading"><div><h2>{gym.name}</h2><p>Gym contact & UPI details</p></div><QrCode size={23} className="text-[#89a36c]"/></div><p className="text-sm flex items-center gap-2"><Phone size={15}/>{gym.paymentPhone||gym.phone}</p>{gym.bankCandidateName&&<p className="text-sm">Account name: <strong>{gym.bankCandidateName}</strong></p>}{gym.upiId?<><div className="flex items-center justify-between rounded-xl bg-[#f4f7ee] border border-[#e4ebd9] px-4 py-3 gap-3"><span className="text-sm break-all font-medium">{gym.upiId}</span><button type="button" onClick={copy} className="p-2" aria-label="Copy UPI ID"><Copy size={16}/></button></div>{(gym.qrCodeUrl||qr)&&<img src={gym.qrCodeUrl?assetUrl(gym.qrCodeUrl):qr} alt="Gym UPI payment QR code" className="w-56 h-56 object-contain mx-auto border border-gray-200 rounded-xl"/>}<p className="text-xs text-gray-500">Check the recipient name in your UPI app before paying.</p></>:<div className="rounded-xl bg-[#f8f7ee] p-4 text-sm text-[#8b8051]">Your gym owner hasn’t configured a UPI ID yet. Contact the gym to pay offline.</div>}</CardBody></Card><Card><CardBody>{submitted?<div className="py-10 text-center"><CheckCircle2 size={44} className="text-[#789956] mx-auto mb-4"/><h2 className="text-xl font-bold text-[#2e4d2f]">Payment reported</h2><p className="text-sm text-gray-500 mt-3">Your payment is pending until the owner confirms it.</p><a href="/customer/payments" className="gym-text-link mt-6">View payment history →</a></div>:<form onSubmit={submit} className="space-y-4"><h2 className="text-lg font-semibold">Already paid? Let your gym know.</h2><p className="text-xs text-gray-500">This records your payment claim for owner review.</p><Input label="Amount paid (₹) *" type="number" min="0.01" step="0.01" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} required/><Select label="Payment method" value={form.paymentMethod} onChange={e=>setForm({...form,paymentMethod:e.target.value})}>{PAYMENT_METHODS.map(m=><option key={m} value={m}>{formatPaymentMethod(m)}</option>)}</Select><Input label="Reference / note" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Transaction reference or payment details" maxLength={1000}/><Button type="submit" loading={saving}>I have paid — request confirmation</Button><p className="text-[11px] text-gray-500">Payment verification stays with the gym owner.</p></form>}</CardBody></Card></div></div>;
 }

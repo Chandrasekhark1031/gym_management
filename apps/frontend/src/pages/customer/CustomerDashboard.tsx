@@ -1,96 +1,22 @@
 import { useEffect, useState } from 'react';
-import { CreditCard, Calendar, Wallet } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { CalendarCheck, CalendarDays, Wallet, ArrowUpRight, Phone, Dumbbell, ArrowRight } from 'lucide-react';
 import { customerPortalService, assetUrl } from '../../services/gymService';
-import PageHeader from '../../components/ui/PageHeader';
-import Card, { CardBody } from '../../components/ui/Card';
 import Badge, { membershipBadgeVariant, paymentBadgeVariant } from '../../components/ui/Badge';
-import { LoadingState, ErrorState, EmptyState } from '../../components/ui/PageStates';
+import { LoadingState, ErrorState } from '../../components/ui/PageStates';
 import { formatPaymentMethod } from '../../utils/display';
-
+const money=(v:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(v||0);
 export default function CustomerDashboard() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    customerPortalService.dashboard()
-      .then((res) => setData(res.dashboard))
-      .catch(() => setError('Unable to load dashboard. Please try again.'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <LoadingState message="Loading dashboard..." />;
-  if (error) return <ErrorState message={error} />;
-  if (!data) return null;
-
-  return (
-    <div className="space-y-6">
-      <PageHeader title="Dashboard" description={`Welcome back, ${data.customer.name}`} />
-
-      <Card>
-        <CardBody className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          {data.customer.photoUrl ? (
-            <img src={assetUrl(data.customer.photoUrl)} className="w-16 h-16 rounded-full object-cover" alt="" />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-gray-100" aria-hidden />
-          )}
-          <div>
-            <p className="text-lg font-semibold text-gray-900">{data.customer.name}</p>
-            <p className="text-gray-600">{data.gym.name}</p>
-          </div>
-        </CardBody>
-      </Card>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardBody>
-            <div className="flex items-center gap-2 mb-4">
-              <CreditCard className="text-blue-600" size={20} />
-              <h2 className="font-semibold text-gray-900">Current Membership</h2>
-            </div>
-            {data.membership ? (
-              <dl className="space-y-2 text-sm">
-                <div className="flex justify-between"><dt className="text-gray-500">Plan</dt><dd className="font-medium">{data.membership.planName}</dd></div>
-                <div className="flex justify-between items-center"><dt className="text-gray-500">Status</dt><dd><Badge variant={membershipBadgeVariant(data.membership.status)}>{data.membership.status?.replace('_', ' ')}</Badge></dd></div>
-                <div className="flex justify-between"><dt className="text-gray-500">Start date</dt><dd>{new Date(data.membership.startDate).toLocaleDateString()}</dd></div>
-                <div className="flex justify-between"><dt className="text-gray-500">Expiry date</dt><dd>{new Date(data.membership.endDate).toLocaleDateString()}</dd></div>
-                <div className="flex justify-between"><dt className="text-gray-500">Days remaining</dt><dd className="font-medium">{data.membership.daysRemaining} days</dd></div>
-              </dl>
-            ) : (
-              <EmptyState
-                title="No Active Membership"
-                description="Please contact your gym owner to activate a membership."
-              />
-            )}
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardBody>
-            <div className="flex items-center gap-2 mb-4">
-              <Wallet className="text-blue-600" size={20} />
-              <h2 className="font-semibold text-gray-900">Latest Payment</h2>
-            </div>
-            {data.latestPayment ? (
-              <dl className="space-y-2 text-sm">
-                <div className="flex justify-between"><dt className="text-gray-500">Amount</dt><dd className="font-medium">{data.latestPayment.amount}</dd></div>
-                <div className="flex justify-between items-center"><dt className="text-gray-500">Status</dt><dd><Badge variant={paymentBadgeVariant(data.latestPayment.status)}>{data.latestPayment.status}</Badge></dd></div>
-                <div className="flex justify-between"><dt className="text-gray-500">Date</dt><dd>{new Date(data.latestPayment.paymentDate).toLocaleDateString()}</dd></div>
-                <div className="flex justify-between"><dt className="text-gray-500">Method</dt><dd>{formatPaymentMethod(data.latestPayment.paymentMethod)}</dd></div>
-              </dl>
-            ) : (
-              <EmptyState title="No payments yet" description="Your payment history will appear here." />
-            )}
-            <div className="mt-4 pt-4 border-t text-sm text-gray-600 flex items-start gap-2">
-              <Calendar size={16} className="mt-0.5 shrink-0" />
-              <div>
-                <p>Gym phone: {data.gym.phone}</p>
-                <p>UPI: {data.gym.upiId || 'Not set by gym'}</p>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-      </div>
+  const [data,setData]=useState<any>(null),[error,setError]=useState('');
+  useEffect(()=>{customerPortalService.dashboard().then(r=>setData(r.dashboard)).catch(()=>setError('Unable to load your membership. Please try again.'));},[]);
+  if(error)return <ErrorState message={error}/>;if(!data)return <LoadingState message="Getting your membership ready…"/>;
+  const m=data.membership,p=data.latestPayment;
+  return <div className="space-y-6">
+    <div className="gym-member-hero"><div className="gym-profile-intro"><span className="gym-member-avatar">{data.customer.photoUrl?<img src={assetUrl(data.customer.photoUrl)} alt=""/>:data.customer.name.split(' ').map((v:string)=>v[0]).slice(0,2).join('')}</span><div><div className="gym-eyebrow">SHOW UP. GET STRONGER.</div><h1>Hey, {data.customer.name.split(' ')[0]}.</h1><p>Your next good workout starts here. Welcome to {data.gym.name}.</p></div></div><div className="gym-member-days"><strong>{m?Math.max(0,m.daysRemaining):'—'}</strong><small>{m?.status==='EXPIRED'?'membership expired':'days remaining'}</small></div></div>
+    <div className="gym-dashboard-grid">
+      <section className="gym-panel"><div className="gym-section-heading"><div><h2>Your membership</h2><p>Consistency looks good on you.</p></div><CalendarCheck size={21} className="text-[#89a36c]"/></div>{m?<><h3 className="text-[27px] font-semibold text-[#2f4e32] my-4">{m.planName}</h3><Badge variant={membershipBadgeVariant(m.status)}>{m.status.replaceAll('_',' ')}</Badge><div className="grid grid-cols-2 gap-5 mt-6 text-[11px]"><div><span className="text-gray-500 block mb-1">Started</span><strong>{new Date(m.startDate).toLocaleDateString('en-IN')}</strong></div><div><span className="text-gray-500 block mb-1">Valid until</span><strong>{new Date(m.endDate).toLocaleDateString('en-IN')}</strong></div></div>{m.daysRemaining<=7&&<p className="rounded-lg bg-[#fbf4df] text-[#9b8147] p-3 mt-5 text-[11px]">{m.daysRemaining<0?'Your membership has ended.':'Your renewal is coming up.'} Contact your gym owner to continue your routine.</p>}<Link to="/customer/membership" className="gym-text-link mt-6">View membership history <ArrowUpRight size={13}/></Link></>:<div className="gym-empty">No membership yet. Ask your gym owner to assign a plan.</div>}</section>
+      <section className="gym-panel"><div className="gym-section-heading"><div><h2>Latest payment</h2><p>Simple, offline and easy to track.</p></div><Wallet size={21} className="text-[#89a36c]"/></div>{p?<><div className="text-[31px] font-bold text-[#2f4e32] my-4">{money(p.amount)}</div><Badge variant={paymentBadgeVariant(p.status)}>{p.status==='PENDING'?'Awaiting owner confirmation':p.status}</Badge><div className="grid grid-cols-2 gap-5 mt-6 text-[11px]"><div><span className="text-gray-500 block mb-1">Date</span><strong>{new Date(p.paymentDate).toLocaleDateString('en-IN')}</strong></div><div><span className="text-gray-500 block mb-1">Method</span><strong>{formatPaymentMethod(p.paymentMethod)}</strong></div></div></>:<p className="gym-empty">Your payments will appear here.</p>}<Link to="/customer/gym-payment" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#174b40] text-white text-[11px] font-semibold px-5 py-3 mt-6">UPI details & report a payment <ArrowRight size={13}/></Link></section>
     </div>
-  );
+    <section className="gym-panel"><div className="gym-section-heading"><div><h2>Your gym</h2><p>A familiar place. A stronger you.</p></div><Dumbbell size={22} className="text-[#89a36c]"/></div><div className="flex flex-col sm:flex-row sm:justify-between gap-5"><div><strong className="text-lg text-[#315130]">{data.gym.name}</strong><p className="text-xs text-gray-500 mt-2">{data.gym.address}</p></div><div className="flex flex-col gap-3 text-xs text-[#647e55]"><span className="flex items-center gap-2"><Phone size={14}/>{data.gym.phone}</span><Link to="/customer/notifications" className="flex items-center gap-2"><CalendarDays size={14}/>Check your membership reminders <ArrowUpRight size={12}/></Link></div></div></section>
+  </div>;
 }

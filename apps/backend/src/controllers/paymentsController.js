@@ -72,6 +72,7 @@ const createPayment = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Invalid payment status' });
     }
 
+    if (!Number.isFinite(Number(amount)) || Number(amount) <= 0 || Number(amount) > 10000000) return res.status(400).json({ success: false, message: 'Enter a payment amount greater than zero.' });
     const customer = await getCustomerForOwner(customerId, req.ownerId);
     if (!customer) {
       return res.status(404).json({ success: false, message: 'Customer not found' });
@@ -118,6 +119,7 @@ const updatePayment = async (req, res, next) => {
     }
 
     const { amount, paymentDate, paymentMethod, status, notes, membershipId } = req.body;
+    if (amount !== undefined && (!Number.isFinite(Number(amount)) || Number(amount) <= 0 || Number(amount) > 10000000)) return res.status(400).json({ success: false, message: 'Enter a payment amount greater than zero.' });
     if (paymentMethod && !ALLOWED_METHODS.includes(paymentMethod)) {
       return res.status(400).json({ success: false, message: 'Invalid payment method' });
     }

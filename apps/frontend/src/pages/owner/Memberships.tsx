@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { gymService } from '../../services/gymService';
 import { useToastStore } from '../../store/useToastStore';
@@ -10,10 +11,11 @@ import { Input, Select } from '../../components/ui/Input';
 import { LoadingState, EmptyState, ErrorState } from '../../components/ui/PageStates';
 
 export default function Memberships() {
+  const [searchParams] = useSearchParams();
   const showToast = useToastStore((s) => s.show);
   const [memberships, setMemberships] = useState<any[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState(searchParams.get('status') || '');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [renewMembership, setRenewMembership] = useState<any | null>(null);
@@ -42,6 +44,7 @@ export default function Memberships() {
     }
   };
 
+  useEffect(() => { setStatus(searchParams.get('status') || ''); }, [searchParams]);
   useEffect(() => { load(); }, [status]);
 
   const openEdit = (m: any) => {

@@ -14,6 +14,7 @@ const {
 const { protect, requireCustomer } = require('../middleware/authMiddleware');
 const { upload } = require('../middleware/upload');
 
+const { reportPayment } = require('../controllers/workspaceController');
 const router = express.Router();
 
 router.use(protect, requireCustomer);
@@ -25,6 +26,7 @@ router.post('/profile/photo', upload.single('photo'), uploadProfilePhoto);
 router.get('/membership', getMembership);
 router.get('/membership/history', getMembershipHistory);
 router.get('/payments', getPayments);
+router.post('/payments/report', reportPayment);
 router.get('/notifications', getNotifications);
 router.patch('/notifications/:id/read', markNotificationRead);
 router.get('/gym-payment', getGymPaymentInfo);
